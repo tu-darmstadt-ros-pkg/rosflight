@@ -371,18 +371,22 @@ void rosflightIO::handle_attitude_quaternion_msg(const mavlink_message_t &msg)
 
   rosflight_msgs::Attitude attitude_msg;
   attitude_msg.header.stamp = mavrosflight_->time.get_ros_time_ms(attitude.time_boot_ms);
-  attitude_msg.attitude.w = attitude.q1;
-  attitude_msg.attitude.x = attitude.q2;
-  attitude_msg.attitude.y = attitude.q3;
-  attitude_msg.attitude.z = attitude.q4;
-  attitude_msg.angular_velocity.x = attitude.rollspeed;
-  attitude_msg.angular_velocity.y = attitude.pitchspeed;
-  attitude_msg.angular_velocity.z = attitude.yawspeed;
+  attitude_msg.attitude.w =  attitude.q1;
+  attitude_msg.attitude.x =  attitude.q2;
+  attitude_msg.attitude.y =  -attitude.q3;
+  attitude_msg.attitude.z =  -attitude.q4;
+  attitude_msg.angular_velocity.x =  attitude.rollspeed;
+  attitude_msg.angular_velocity.y = -attitude.pitchspeed;
+  attitude_msg.angular_velocity.z = -attitude.yawspeed;
 
   geometry_msgs::Vector3Stamped euler_msg;
   euler_msg.header.stamp = attitude_msg.header.stamp;
 
-  tf::Quaternion quat(attitude.q2, attitude.q3, attitude.q4, attitude.q1);
+  tf::Quaternion quat(attitude_msg.attitude.x,
+                      attitude_msg.attitude.y,
+                      attitude_msg.attitude.z,
+                      attitude_msg.attitude.w);
+
   tf::Matrix3x3(quat).getEulerYPR(euler_msg.vector.z, euler_msg.vector.y, euler_msg.vector.x);
 
   // save off the quaternion for use with the IMU callback
@@ -409,11 +413,11 @@ void rosflightIO::handle_small_imu_msg(const mavlink_message_t &msg)
   imu_msg.header.stamp = mavrosflight_->time.get_ros_time_us(imu.time_boot_us);
   imu_msg.header.frame_id = frame_id_;
   imu_msg.linear_acceleration.x = imu.xacc;
-  imu_msg.linear_acceleration.y = imu.yacc;
-  imu_msg.linear_acceleration.z = imu.zacc;
+  imu_msg.linear_acceleration.y = -imu.yacc;
+  imu_msg.linear_acceleration.z = -imu.zacc;
   imu_msg.angular_velocity.x = imu.xgyro;
-  imu_msg.angular_velocity.y = imu.ygyro;
-  imu_msg.angular_velocity.z = imu.zgyro;
+  imu_msg.angular_velocity.y = -imu.ygyro;
+  imu_msg.angular_velocity.z = -imu.zgyro;
   imu_msg.orientation = attitude_quat_;
 
   sensor_msgs::Temperature temp_msg;
