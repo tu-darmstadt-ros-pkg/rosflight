@@ -59,6 +59,8 @@ void MavlinkComm::open()
   // start reading from the port
   async_read();
   io_thread_ = boost::thread(boost::bind(&boost::asio::io_service::run, &this->io_service_));
+  //sleep(1);
+  //async_read();
 }
 
 void MavlinkComm::close()
@@ -68,9 +70,13 @@ void MavlinkComm::close()
   io_service_.stop();
   do_close();
 
+  std::cout << "before joinable\n";
   if (io_thread_.joinable())
   {
+    std::cout << "before join\n";
+    sleep(1);
     io_thread_.join();
+    std::cout << "after join\n";
   }
 }
 
@@ -127,6 +133,7 @@ void MavlinkComm::async_read_end(const boost::system::error_code &error, size_t 
 
   if (error)
   {
+    std::cerr << error.message() << std::endl;
     close();
     return;
   }
